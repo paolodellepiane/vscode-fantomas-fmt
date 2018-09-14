@@ -1,6 +1,6 @@
 # fantomas-fmt README
 
-Uses the awesome [fantomas](https://github.com/fsprojects/fantomas) formatter to format fsharp files.
+It uses the awesome [fantomas](https://github.com/fsprojects/fantomas) formatter to format fsharp files.
 
 
 ## Requirements
