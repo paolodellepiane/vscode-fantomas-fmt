@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.0.6
+
+execution on dedicated terminal, shell no longer appears
+
 ### 0.0.4
 
 fix regression
