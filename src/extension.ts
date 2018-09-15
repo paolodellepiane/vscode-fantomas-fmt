@@ -84,12 +84,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   function runFantomas(input: string, output: string) {
     try {
-      fs.unlinkSync(output);
-    } catch {
-      console.error('error deleting tmp file');
+      fs.copyFileSync(input, output);
+    } catch (ex) {
+      console.error('error copying tmp file: ' + ex.message);
     }
     let cfg = getFantomasArgs();
-    cp.spawnSync('fantomas', [input, '--out ' + output, ...cfg], { shell: true, hideWindows: true, detached: true });
+    cp.spawnSync('fantomas', [output, ...cfg], { shell: true, hideWindows: true, detached: true });
     try {
       return fs.readFileSync(output);
     } catch (ex) {
