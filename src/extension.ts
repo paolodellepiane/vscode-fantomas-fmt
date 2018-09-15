@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
           return [];
         }
         try {
-          let formatted = await runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'), 100);
+          let formatted = await runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'), 10000);
           if (formatted) {
             const firstLine = document.lineAt(0);
             const lastLine = document.lineAt(document.lineCount - 1);

@@ -1,4 +1,7 @@
 # Change Log
+### 0.0.7
+
+fix timeout
 
 ### 0.0.6
 
