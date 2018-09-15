@@ -1,6 +1,6 @@
 'use strict';
 import * as vscode from 'vscode';
-const cp = require('child_process');
+import { runOnShell, runOnTerminal, log, logerr } from './runner';
 const fs = require('fs');
 const path = require('path');
 
@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
           return [];
         }
         try {
-          let formatted = await runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'), 10000);
+          let formatted = await runFantomas(editor.document.fileName, getFantomasArgs(), 10000);
           if (formatted) {
             const firstLine = document.lineAt(0);
             const lastLine = document.lineAt(document.lineCount - 1);
@@ -54,13 +54,22 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   function checkFantomas() {
-    let result = run('dotnet tool list -g');
+    let result = runOnShell('dotnet tool list -g');
     return result.output && result.output.includes('fantomas-tool');
   }
 
   function installFantomas() {
-    let result = run('dotnet tool install fantomas-tool -g');
+    let result = runOnShell('dotnet tool install fantomas-tool -g');
     return result.output;
+  }
+
+  async function runFantomas(input, cfg, timeoutMs): Promise<string> {
+    const output = path.join(context.extensionPath, 'fantomas.tmp.fs');
+    fs.copyFileSync(input, output);
+    let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
+    log(cmd);    
+    await runOnTerminal(context, cmd, 'tten', timeoutMs);
+    return fs.readFileSync(output);
   }
 
   let installed = checkFantomas();
@@ -73,75 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
     logerr("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     vscode.window.showErrorMessage("[fantomas-fmt] Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     return;
-  }
-
-  let onData: (data: string) => void;
-  function getTerminal(name: string) {
-    let term = vscode.window.terminals.find(t => t.name === name);
-    if (term) {
-      return term;
-    }
-    term = vscode.window.createTerminal(name);
-    context.subscriptions.push(term);
-    vscode.window.onDidOpenTerminal(e => {
-      if (e.name !== 'fantomas') {
-        return;
-      }
-      (e as any).onDidWriteData(data => {
-        console.log('Terminal ' + e.name + ' - data: ', data);
-        onData && onData(data);
-      });
-    });
-    return term;
-  }
-
-  function run(cmd: any): { output?: string; err?: string } {
-    try {
-      let output = cp.execSync(cmd);
-      log(output.toString());
-      return { output: output.toString() };
-    } catch (e) {
-      logerr(e);
-      return { err: e.toString() };
-    }
-  }
-
-  function runFantomas(input, output, timeoutMs): Promise<string> {
-    return new Promise((resolve, reject) => {
-      var timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
-      let term = getTerminal('fantomas');
-      let buffer = "";
-      onData = data => {
-        buffer += data;
-        if (buffer.includes('tten')) {
-          clearTimeout(timer);
-          try {
-            resolve(fs.readFileSync(output));
-          } catch (ex) {
-            vscode.window.showErrorMessage("[fantomas-fmt] can't read formatted output");
-            logerr(ex.message);
-            reject(ex.message);
-          }
-        }
-      };
-      try {
-        fs.copyFileSync(input, output);
-      } catch (ex) {
-        logerr('error copying tmp file: ' + ex.message);
-        reject(ex.message);
-      }
-      let cfg = getFantomasArgs();
-      let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
-      log(cmd);
-      term.sendText(cmd);
-    });
-  }
-
-  function log(input) {
-    console.log('[fantomas-fmt] ' + input);
-  }
-  function logerr(input) {
-    console.error('[fantomas-fmt] ' + input);
   }
 }
 
