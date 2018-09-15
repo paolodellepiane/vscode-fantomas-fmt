@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('activating fantomas-fmt');
+  log('activating fantomas-fmt');
 
   let disposable = vscode.languages.registerDocumentFormattingEditProvider(
     { scheme: 'file', language: 'fsharp' },
@@ -15,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!editor) {
           return [];
         }
-        let formatted = runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp'));
+        let formatted = runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'));
         if (formatted) {
           const firstLine = document.lineAt(0);
           const lastLine = document.lineAt(document.lineCount - 1);
@@ -62,11 +62,11 @@ export function activate(context: vscode.ExtensionContext) {
   let installed = checkFantomas();
 
   if (installed) {
-    console.log('fantomas-tool found');
+    log('fantomas-tool found');
   }
 
   if (!installed && !installFantomas()) {
-    console.error("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
+    logerr("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     vscode.window.showErrorMessage("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     return;
   }
@@ -74,10 +74,10 @@ export function activate(context: vscode.ExtensionContext) {
   function run(cmd: any): { output?: string; err?: string } {
     try {
       let output = cp.execSync(cmd);
-      console.log(output.toString());
+      log(output.toString());
       return { output: output.toString() };
     } catch (e) {
-      console.log(e);
+      logerr(e);
       return { err: e.toString() };
     }
   }
@@ -86,18 +86,22 @@ export function activate(context: vscode.ExtensionContext) {
     try {
       fs.copyFileSync(input, output);
     } catch (ex) {
-      console.error('error copying tmp file: ' + ex.message);
+      logerr('error copying tmp file: ' + ex.message);
     }
     let cfg = getFantomasArgs();
+    log('fantomas ' + output + ' ' + cfg.join(" "));
     cp.spawnSync('fantomas', [output, ...cfg], { shell: true, hideWindows: true, detached: true });
     try {
       return fs.readFileSync(output);
     } catch (ex) {
       vscode.window.showErrorMessage("can't read formatted output");
-      console.error(ex.message);
+      logerr(ex.message);
       return null;
     }
   }
+
+  function log(input) { console.log('[fantomas-fmt] ' + input); }
+  function logerr(input) { console.error('[fantomas-fmt] ' + input); }
 }
 
 export function deactivate() {}

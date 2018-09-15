@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.0.4
+
+fix regression
+
 ### 0.0.3
 
 add changelog
