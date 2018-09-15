@@ -2,7 +2,7 @@
     "name": "fantomas-fmt",
     "displayName": "fantomas-fmt",
     "description": "fantomas-fmt",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "publisher": "paolodellepiane",
     "engines": {
         "vscode": "^1.27.0"
@@ -27,9 +27,7 @@
                     "description": "Set number of spaces for indentation (default = 4). The value should be between 1 and 10."
                 },
                 "fantomas.pageWidth": {
-                    "type": [
-                        "number"
-                    ],
+                    "type": "number",
                     "default": 80,
                     "description": "Set the column where we break to new lines (default = 80). The value should be at least 60."
                 },
