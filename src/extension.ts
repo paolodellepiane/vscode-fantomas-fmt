@@ -110,8 +110,10 @@ export function activate(context: vscode.ExtensionContext) {
     return new Promise((resolve, reject) => {
       var timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
       let term = getTerminal('fantomas');
+      let buffer = "";
       onData = data => {
-        if (data.includes('fantomas.tmp.fs has been written')) {
+        buffer += data;
+        if (buffer.includes('tten')) {
           clearTimeout(timer);
           try {
             resolve(fs.readFileSync(output));

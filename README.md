@@ -27,10 +27,6 @@ This extension contributes the following settings:
 * `fantomas.noSpaceAfterComma`: disable spaces after commas (default = true).
 * `fantomas.noSpaceAfterSemiColon`: disable spaces after semicolons (default = true).
 
-## Known Issues
-
-* As of now, a shell appears when formatting
-
 ## License
 MIT © Paolo Dellepiane
 
