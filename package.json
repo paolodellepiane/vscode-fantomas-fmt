@@ -2,7 +2,7 @@
     "name": "fantomas-fmt",
     "displayName": "fantomas-fmt",
     "description": "fantomas-fmt",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "paolodellepiane",
     "engines": {
         "vscode": "^1.27.0"

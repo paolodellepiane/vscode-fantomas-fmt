@@ -31,11 +31,6 @@ This extension contributes the following settings:
 
 * As of now, a shell appears when formatting
 
-### 0.0.2
-
-Workaround for fantomas removine module keyword when using stdout or out options
-
-### 0.0.1
-
-Initial release
+## License
+MIT © Paolo Dellepiane
 

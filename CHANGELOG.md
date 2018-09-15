@@ -1,7 +1,14 @@
 # Change Log
-All notable changes to the "fantomas-fmt" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+### 0.0.3
 
-## [Unreleased]
-- Initial release
+add changelog
+
+### 0.0.2
+
+Workaround for fantomas removing module keyword when using stdout or out options
+
+### 0.0.1
+
+Initial release
+
