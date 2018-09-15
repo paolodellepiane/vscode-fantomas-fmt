@@ -10,17 +10,22 @@ export function activate(context: vscode.ExtensionContext) {
   let disposable = vscode.languages.registerDocumentFormattingEditProvider(
     { scheme: 'file', language: 'fsharp' },
     {
-      provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
+      async provideDocumentFormattingEdits(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
         let editor = vscode.window.activeTextEditor;
         if (!editor) {
           return [];
         }
-        let formatted = runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'));
-        if (formatted) {
-          const firstLine = document.lineAt(0);
-          const lastLine = document.lineAt(document.lineCount - 1);
-          const range = new vscode.Range(firstLine.range.start, lastLine.range.end);
-          return [vscode.TextEdit.replace(range, formatted.toString())];
+        try {
+          let formatted = await runFantomas(editor.document.fileName, path.join(context.extensionPath, 'fantomas.tmp.fs'), 100);
+          if (formatted) {
+            const firstLine = document.lineAt(0);
+            const lastLine = document.lineAt(document.lineCount - 1);
+            const range = new vscode.Range(firstLine.range.start, lastLine.range.end);
+            return [vscode.TextEdit.replace(range, formatted.toString())];
+          }
+        } catch (err) {
+          logerr(err);
+          vscode.window.showErrorMessage('[fantomas-fmt] ' + err.message);
         }
       }
     }
@@ -29,24 +34,23 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 
   function getFantomasArgs() {
-    const keys = { 
-        ['indent']: 4, 
-        ['pageWidth']: 80, 
-        ['preserveEOL']: false, 
-        ['semicolonEOL']: false, 
-        ['noSpaceBeforeArgument']: true, 
-        ['noSpaceBeforeColon']: true, 
-        ['noSpaceAfterComma']: true, 
-        ['noSpaceAfterSemiColon']: true };
+    const keys = {
+      ['indent']: 4,
+      ['pageWidth']: 80,
+      ['preserveEOL']: false,
+      ['semicolonEOL']: false,
+      ['noSpaceBeforeArgument']: true,
+      ['noSpaceBeforeColon']: true,
+      ['noSpaceAfterComma']: true,
+      ['noSpaceAfterSemiColon']: true
+    };
     const cfg = vscode.workspace.getConfiguration('fantomas');
     return Object.keys(keys)
-        .filter(k => cfg.get(k, keys[k]) !== false)
-        .reduce(
-            (arr, k) => {
-                const val = cfg.get(k, keys[k]);
-                return val === true ? [...arr, '--' + k] : [...arr, '--' + k, val];
-            },
-            []);
+      .filter(k => cfg.get(k, keys[k]) !== false)
+      .reduce((arr, k) => {
+        const val = cfg.get(k, keys[k]);
+        return val === true ? [...arr, '--' + k] : [...arr, '--' + k, val];
+      }, []);
   }
 
   function checkFantomas() {
@@ -67,8 +71,28 @@ export function activate(context: vscode.ExtensionContext) {
 
   if (!installed && !installFantomas()) {
     logerr("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
-    vscode.window.showErrorMessage("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
+    vscode.window.showErrorMessage("[fantomas-fmt] Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     return;
+  }
+
+  let onData: (data: string) => void;
+  function getTerminal(name: string) {
+    let term = vscode.window.terminals.find(t => t.name === name);
+    if (term) {
+      return term;
+    }
+    term = vscode.window.createTerminal(name);
+    context.subscriptions.push(term);
+    vscode.window.onDidOpenTerminal(e => {
+      if (e.name !== 'fantomas') {
+        return;
+      }
+      (e as any).onDidWriteData(data => {
+        console.log('Terminal ' + e.name + ' - data: ', data);
+        onData && onData(data);
+      });
+    });
+    return term;
   }
 
   function run(cmd: any): { output?: string; err?: string } {
@@ -82,26 +106,41 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
-  function runFantomas(input: string, output: string) {
-    try {
-      fs.copyFileSync(input, output);
-    } catch (ex) {
-      logerr('error copying tmp file: ' + ex.message);
-    }
-    let cfg = getFantomasArgs();
-    log('fantomas ' + output + ' ' + cfg.join(" "));
-    cp.spawnSync('fantomas', [output, ...cfg], { shell: true, hideWindows: true, detached: true });
-    try {
-      return fs.readFileSync(output);
-    } catch (ex) {
-      vscode.window.showErrorMessage("can't read formatted output");
-      logerr(ex.message);
-      return null;
-    }
+  function runFantomas(input, output, timeoutMs): Promise<string> {
+    return new Promise((resolve, reject) => {
+      var timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
+      let term = getTerminal('fantomas');
+      onData = data => {
+        if (data.includes('fantomas.tmp.fs has been written')) {
+          clearTimeout(timer);
+          try {
+            resolve(fs.readFileSync(output));
+          } catch (ex) {
+            vscode.window.showErrorMessage("[fantomas-fmt] can't read formatted output");
+            logerr(ex.message);
+            reject(ex.message);
+          }
+        }
+      };
+      try {
+        fs.copyFileSync(input, output);
+      } catch (ex) {
+        logerr('error copying tmp file: ' + ex.message);
+        reject(ex.message);
+      }
+      let cfg = getFantomasArgs();
+      let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
+      log(cmd);
+      term.sendText(cmd);
+    });
   }
 
-  function log(input) { console.log('[fantomas-fmt] ' + input); }
-  function logerr(input) { console.error('[fantomas-fmt] ' + input); }
+  function log(input) {
+    console.log('[fantomas-fmt] ' + input);
+  }
+  function logerr(input) {
+    console.error('[fantomas-fmt] ' + input);
+  }
 }
 
 export function deactivate() {}
