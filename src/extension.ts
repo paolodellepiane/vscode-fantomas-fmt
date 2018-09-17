@@ -11,12 +11,8 @@ export function activate(context: vscode.ExtensionContext) {
     { scheme: 'file', language: 'fsharp' },
     {
       async provideDocumentFormattingEdits(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
-        let editor = vscode.window.activeTextEditor;
-        if (!editor) {
-          return [];
-        }
         try {
-          let formatted = await runFantomas(editor.document.fileName, getFantomasArgs(), 10000);
+          let formatted = await runFantomas(document.getText(), getFantomasArgs(), 10000);
           if (formatted) {
             const firstLine = document.lineAt(0);
             const lastLine = document.lineAt(document.lineCount - 1);
@@ -67,9 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
     return result.output;
   }
 
-  async function runFantomas(input, cfg, timeoutMs): Promise<string> {
+  async function runFantomas(data, cfg, timeoutMs): Promise<string> {
     const output = path.join(context.extensionPath, 'fantomas.tmp.fs');
-    fs.copyFileSync(input, output);
+    fs.writeFileSync(output, data);
     let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
     log(cmd);    
     await runOnTerminal(context, cmd, 'tten', timeoutMs);
