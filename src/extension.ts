@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
       ['indentOnTryWith']: false,
       ['reorderOpenDeclaration']: false,
       ['noSpaceAroundDelimiter']: true,
-      ['strictMode']: false,
+      ['strictMode']: false
     };
     const cfg = vscode.workspace.getConfiguration('fantomas');
     return Object.keys(keys)
@@ -67,9 +67,14 @@ export function activate(context: vscode.ExtensionContext) {
     const output = path.join(context.extensionPath, 'fantomas.tmp.fs');
     fs.writeFileSync(output, data);
     let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
-    log(cmd);    
-    await runOnTerminal(context, cmd, 'tten', timeoutMs);
-    return fs.readFileSync(output);
+    log(cmd);
+    try {
+      await runOnTerminal(context, cmd, 'tten', 'failed', timeoutMs);
+      return fs.readFileSync(output);
+    } catch (ex) {
+      logerr(ex.message);
+      vscode.window.showErrorMessage("[fantomas-fmt] format failed");
+    }
   }
 
   let installed = checkFantomas();

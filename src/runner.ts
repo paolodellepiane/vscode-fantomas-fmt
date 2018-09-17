@@ -36,22 +36,18 @@ export function runOnShell(cmd: any): { output?: string; err?: string } {
   }
 }
 
-export function runOnTerminal(context: vscode.ExtensionContext, cmd: string, endMatch: string, timeoutMs: number): Promise<string> {
+export function runOnTerminal(context: vscode.ExtensionContext, cmd: string, successMatch: string, failMatch: string, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
     const term = getTerminal(context);
     let buffer = "";
     onData = data => {
       buffer += data;
-      if (buffer.includes(endMatch)) {
+      if (buffer.includes(successMatch)) {
         clearTimeout(timer);
-        try {
-          resolve(buffer);
-        } catch (ex) {
-          vscode.window.showErrorMessage("[fantomas-fmt] can't read formatted output");
-          logerr(ex.message);
-          reject(ex.message);
-        }
+        resolve(buffer);
+      } else if (buffer.includes(failMatch)) {
+        reject(new Error(buffer));
       }
     };
     term.sendText(cmd);
