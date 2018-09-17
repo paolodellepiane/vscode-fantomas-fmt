@@ -60,6 +60,26 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Disable spaces after semicolons (default = true)."
+                },
+                "fantomas.indentOnTryWith": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable indentation on try/with block (default = false)."
+                },
+                "fantomas.reorderOpenDeclaration": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable reordering open declarations (default = false)."
+                },
+                "fantomas.noSpaceAroundDelimiter": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+                },
+                "fantomas.strictMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false)."
                 }
             }
         }

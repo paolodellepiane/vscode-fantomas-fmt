@@ -42,7 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
       ['noSpaceBeforeArgument']: true,
       ['noSpaceBeforeColon']: true,
       ['noSpaceAfterComma']: true,
-      ['noSpaceAfterSemiColon']: true
+      ['noSpaceAfterSemiColon']: true,
+      ['indentOnTryWith']: false,
+      ['reorderOpenDeclaration']: false,
+      ['noSpaceAroundDelimiter']: true,
+      ['strictMode']: false,
     };
     const cfg = vscode.workspace.getConfiguration('fantomas');
     return Object.keys(keys)
