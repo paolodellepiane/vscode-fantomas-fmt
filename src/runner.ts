@@ -36,7 +36,7 @@ export function runOnShell(cmd: any): { output?: string; err?: string } {
   }
 }
 
-export function runOnTerminal(context: vscode.ExtensionContext, cmd: string, successMatch: string, failMatch: string, timeoutMs: number): Promise<string> {
+export function runOnTerminal(context: vscode.ExtensionContext, workingDir: string, cmd: string, successMatch: string, failMatch: string, timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
     const term = getTerminal(context);
@@ -50,6 +50,7 @@ export function runOnTerminal(context: vscode.ExtensionContext, cmd: string, suc
         reject(new Error(buffer));
       }
     };
+    term.sendText('cd "' + workingDir + '"');
     term.sendText(cmd);
   });
 }

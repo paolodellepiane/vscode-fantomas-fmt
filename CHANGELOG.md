@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.0.11
+
+fix for linux/osx paths
+
 ### 0.0.9
 
 clean up code
