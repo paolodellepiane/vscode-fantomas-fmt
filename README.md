@@ -6,7 +6,7 @@ vscode extension that uses the awesome [fantomas](https://github.com/fsprojects/
 ## Requirements
 
 * [dotnet core 2.1](https://www.microsoft.com/net/download)
-* fantomas-tool 
+* [fantomas-tool](https://github.com/fsprojects/fantomas)  
   If missing, the extension will try to install it automatically. 
   In case of problem, try to install it manually by running the following command:
   ```
