@@ -1,5 +1,13 @@
 # Change Log
 
+### 0.0.13
+
+now it works for both command prompt and powershell in windows
+
+### 0.0.12
+
+another fix for linux/osx paths
+
 ### 0.0.11
 
 fix for linux/osx paths

@@ -7,13 +7,13 @@ const path = require('path');
 export function activate(context: vscode.ExtensionContext) {
   log('activating fantomas-fmt');
 
-  let formatting = false; 
+  let formatting = false;
   let disposable = vscode.languages.registerDocumentFormattingEditProvider(
     { scheme: 'file', language: 'fsharp' },
     {
       async provideDocumentFormattingEdits(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
         if (formatting) {
-            return null;
+          return null;
         }
         try {
           formatting = true;
@@ -60,15 +60,17 @@ export function activate(context: vscode.ExtensionContext) {
       }, []);
   }
 
-  let fantomasPath = path.join(require('os').homedir(), "~/.dotnet/tools/");
+  let fantomasPath = path.join(require('os').homedir(), '.dotnet/tools/');
+  let fantomasCmd = 'fantomas.exe';
 
   function checkFantomas() {
-    if (!fs.existsSync(path.join(fantomasPath, "fantomas"))) {
-        fantomasPath = path.join(require('os').homedir(), ".dotnet/tools");
-        if (!fs.existsSync(path.join(fantomasPath, "fantomas.exe"))) {
-            return false;
-        }
+    if (!fs.existsSync(path.join(fantomasPath, fantomasCmd))) {
+      fantomasCmd = './fantomas';
+      if (!fs.existsSync(path.join(fantomasPath, 'fantomas'))) {
+        return false;
+      }
     }
+    log(`path ${fantomasPath} cmd ${fantomasCmd}`);
     return true;
   }
 
@@ -80,14 +82,14 @@ export function activate(context: vscode.ExtensionContext) {
   async function runFantomas(data, cfg, timeoutMs): Promise<string> {
     const output = path.join(context.extensionPath, 'fantomas.tmp.fs');
     fs.writeFileSync(output, data);
-    let cmd = 'fantomas "' + output + '" ' + cfg.join(' ');
+    let cmd = fantomasCmd + ' "' + output + '" ' + cfg.join(' ');
     log(cmd);
     try {
       await runOnTerminal(context, fantomasPath, cmd, 'tten', 'failed', timeoutMs);
       return fs.readFileSync(output);
     } catch (ex) {
       logerr(ex.message);
-      vscode.window.showErrorMessage("[fantomas-fmt] format failed");
+      vscode.window.showErrorMessage('[fantomas-fmt] format failed');
     }
   }
 
