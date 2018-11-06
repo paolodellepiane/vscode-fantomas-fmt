@@ -1,6 +1,7 @@
 'use strict';
 import * as vscode from 'vscode';
 const cp = require('child_process');
+const path = require('path');
 
 let onData: (data: string) => void;
 const terminalName = 'fantomas';
@@ -15,12 +16,21 @@ vscode.window.onDidOpenTerminal(e => {
   });
 });
 
+let winPath = require('process').env['WINDIR'];
+
+function createCmdOrTerminal(terminalName) {
+  if (require('os').platform() === 'win32') {
+    return vscode.window.createTerminal(terminalName, path.join(winPath, 'system32/cmd.exe'));  
+  }
+  return vscode.window.createTerminal(terminalName);
+}
+
 function getTerminal(context: vscode.ExtensionContext) {
   let term = vscode.window.terminals.find(t => t.name === terminalName);
   if (term) {
     return term;
   }
-  term = vscode.window.createTerminal(terminalName);
+  term = createCmdOrTerminal(terminalName);
   context.subscriptions.push(term);
   return term;
 }

@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.0.14
+
+uses always command prompt in windows
+
 ### 0.0.13
 
 now it works for both command prompt and powershell in windows

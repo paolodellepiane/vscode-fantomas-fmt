@@ -60,18 +60,23 @@ export function activate(context: vscode.ExtensionContext) {
       }, []);
   }
 
+  let os = require('os').platform() === 'win32' ? 'win32' : 'others';
   let fantomasPath = path.join(require('os').homedir(), '.dotnet/tools/');
-  let fantomasCmd = 'fantomas.exe';
+  let fantomasExeNames = {
+    win32: 'fantomas.exe',
+    others: './fantomas'
+  };
+  let fantomasExeName = () => fantomasExeNames[os];
+  let tmpFilePath = path.join(context.extensionPath, 'fantomas.tmp.fs');
+  let cmd = exe => (data, cfg) => {
+    fs.writeFileSync(tmpFilePath, data);
+    return `${exe} "${tmpFilePath}" ${cfg.join(' ')}`;
+  };
+  let cmdWithExe = cmd(fantomasExeName());
 
-  function checkFantomas() {
-    if (!fs.existsSync(path.join(fantomasPath, fantomasCmd))) {
-      fantomasCmd = './fantomas';
-      if (!fs.existsSync(path.join(fantomasPath, 'fantomas'))) {
-        return false;
-      }
-    }
-    log(`path ${fantomasPath} cmd ${fantomasCmd}`);
-    return true;
+  function ensureFantomasInstalled() {
+    log(`check path ${fantomasPath} cmd ${fantomasExeName()}`);
+    return fs.existsSync(path.join(fantomasPath, fantomasExeName()));
   }
 
   function installFantomas() {
@@ -80,26 +85,24 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   async function runFantomas(data, cfg, timeoutMs): Promise<string> {
-    const output = path.join(context.extensionPath, 'fantomas.tmp.fs');
-    fs.writeFileSync(output, data);
-    let cmd = fantomasCmd + ' "' + output + '" ' + cfg.join(' ');
+    let cmd = cmdWithExe(data, cfg);
     log(cmd);
     try {
       await runOnTerminal(context, fantomasPath, cmd, 'tten', 'failed', timeoutMs);
-      return fs.readFileSync(output);
+      return fs.readFileSync(tmpFilePath);
     } catch (ex) {
       logerr(ex.message);
       vscode.window.showErrorMessage('[fantomas-fmt] format failed');
     }
   }
 
-  let installed = checkFantomas();
+  let installed = ensureFantomasInstalled();
 
   if (installed) {
     log('fantomas-tool found');
   }
 
-  if (!installed && !installFantomas() && !checkFantomas()) {
+  if (!installed && !installFantomas() && !ensureFantomasInstalled()) {
     logerr("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
     vscode.window.showErrorMessage("[fantomas-fmt] Can't install Fantomas. Please install it manually and restart Visual Studio Code");
   }
