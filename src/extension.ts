@@ -53,10 +53,10 @@ export function activate(context: vscode.ExtensionContext) {
     };
     const cfg = vscode.workspace.getConfiguration('fantomas');
     return Object.keys(keys)
-      .filter(k => cfg.get(k, keys[k]) !== false)
+      .filter(k => cfg.get(k, keys[k]) !== keys[k])
       .reduce((arr, k) => {
         const val = cfg.get(k, keys[k]);
-        return val === true ? [...arr, '--' + k] : [...arr, '--' + k, val];
+        return typeof val === 'boolean' ? [...arr, '--' + k] : [...arr, '--' + k, val];
       }, []);
   }
 
