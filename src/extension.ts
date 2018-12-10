@@ -36,27 +36,42 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable);
 
+  function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  function adaptApiParamToCli(key, value) {
+    const toinvert = {
+      spaceBeforeArgument: true,
+      spaceBeforeColon: true,
+      spaceAfterComma: true,
+      spaceAfterSemiColon: true,
+      spaceAroundDelimiter: true
+    };
+    return typeof value === 'boolean' && toinvert[key] ? ['--no' + capitalizeFirstLetter(key), !value] : ['--' + key, value];
+  }
+
   function getFantomasArgs() {
     const keys = {
       ['indent']: 4,
       ['pageWidth']: 80,
       ['preserveEOL']: false,
       ['semicolonEOL']: false,
-      ['noSpaceBeforeArgument']: true,
-      ['noSpaceBeforeColon']: true,
-      ['noSpaceAfterComma']: true,
-      ['noSpaceAfterSemiColon']: true,
+      ['spaceBeforeArgument']: true,
+      ['spaceBeforeColon']: true,
+      ['spaceAfterComma']: true,
+      ['spaceAfterSemiColon']: true,
       ['indentOnTryWith']: false,
       ['reorderOpenDeclaration']: false,
-      ['noSpaceAroundDelimiter']: true,
+      ['spaceAroundDelimiter']: true,
       ['strictMode']: false
     };
     const cfg = vscode.workspace.getConfiguration('fantomas');
     return Object.keys(keys)
       .filter(k => cfg.get(k, keys[k]) !== keys[k])
       .reduce((arr, k) => {
-        const val = cfg.get(k, keys[k]);
-        return typeof val === 'boolean' ? [...arr, '--' + k] : [...arr, '--' + k, val];
+        const [cliKey, cliValue] = adaptApiParamToCli(k, cfg.get(k, keys[k]));
+        return typeof cliValue === 'boolean' ? [...arr, cliKey] : [...arr, cliKey, cliValue];
       }, []);
   }
 

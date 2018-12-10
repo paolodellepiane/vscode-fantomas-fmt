@@ -20,10 +20,10 @@ This extension contributes the following settings:
 - `fantomas.pageWidth`: set the column where we break to new lines (default = 80). The value should be at least 60.
 - `fantomas.preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines (default = false)
 - `fantomas.semicolonEOL`: enable semicolons at the end of line (default = false).
-- `fantomas.noSpaceBeforeArgument`: disable spaces before the first argument of functions when there are parenthesis (default = true).
-- `fantomas.noSpaceBeforeColon`: disable spaces before colons (default = true).
-- `fantomas.noSpaceAfterComma`: disable spaces after commas (default = true).
-- `fantomas.noSpaceAfterSemiColon`: disable spaces after semicolons (default = true).
+- `fantomas.spaceBeforeArgument`: enable spaces before the first argument of functions when there are parenthesis (default = true).
+- `fantomas.spaceBeforeColon`: enable spaces before colons (default = true).
+- `fantomas.spaceAfterComma`: enable spaces after commas (default = true).
+- `fantomas.spaceAfterSemiColon`: enable spaces after semicolons (default = true).
 
 ## Troubleshooting
 

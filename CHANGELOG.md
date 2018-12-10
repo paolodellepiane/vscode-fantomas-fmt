@@ -1,5 +1,9 @@
 # Change Log
 
+### 0.0.20
+
+fix default settings issues
+
 ### 0.0.14
 
 uses always command prompt in windows
@@ -43,4 +47,3 @@ Workaround for fantomas removing module keyword when using stdout or out options
 ### 0.0.1
 
 Initial release
-
