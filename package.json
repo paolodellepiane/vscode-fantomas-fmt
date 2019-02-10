@@ -54,7 +54,7 @@
         "fantomas.spaceAfterComma": {
           "type": "boolean",
           "default": true,
-          "description": "Enable spaces before colons (default = true)."
+          "description": "Enable spaces after commas (default = true)."
         },
         "fantomas.spaceAfterSemiColon": {
           "type": "boolean",
