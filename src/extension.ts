@@ -17,7 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
         }
         try {
           formatting = true;
-          let formatted = await runFantomas(document.getText(), getFantomasArgs(), 10000);
+          let is_fsi = document.fileName.endsWith(".fsi");
+          let formatted = await runFantomas(document.getText(), getFantomasArgs(), is_fsi, 10000);
           if (formatted) {
             const firstLine = document.lineAt(0);
             const lastLine = document.lineAt(document.lineCount - 1);
@@ -99,8 +100,8 @@ export function activate(context: vscode.ExtensionContext) {
     return result.output;
   }
 
-  async function runFantomas(data, cfg, timeoutMs): Promise<string> {
-    let cmd = cmdWithExe(data, cfg);
+  async function runFantomas(data, cfg, is_fsi, timeoutMs): Promise<string> {
+    let cmd = cmdWithExe(data, cfg) + (is_fsi ? " --fsi" : "");
     log(cmd);
     try {
       await runOnTerminal(context, fantomasPath, cmd, 'tten', 'failed', timeoutMs);
