@@ -31,50 +31,50 @@
           "default": 80,
           "description": "Set the column where we break to new lines (default = 80). The value should be at least 60."
         },
-        "fantomas.preserveEOL": {
-          "type": "boolean",
-          "default": false,
-          "description": "Preserve original end of lines, disables auto insert/remove of blank lines (default = false)"
-        },
         "fantomas.semicolonEOL": {
           "type": "boolean",
           "default": false,
           "description": "Enable semicolons at the end of line (default = false)."
         },
-        "fantomas.spaceBeforeArgument": {
+        "fantomas.noSpaceBeforeArgument": {
           "type": "boolean",
           "default": true,
-          "description": "Enable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
+          "description": "Disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option."
         },
         "fantomas.spaceBeforeColon": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Enable spaces before colons (default = true)."
         },
-        "fantomas.spaceAfterComma": {
+        "fantomas.noSpaceAfterComma": {
           "type": "boolean",
           "default": true,
-          "description": "Enable spaces after commas (default = true)."
+          "description": "Disable spaces after commas (default = true)."
         },
-        "fantomas.spaceAfterSemiColon": {
+        "fantomas.noSpaceAfterSemiColon": {
           "type": "boolean",
           "default": true,
-          "description": "Enable spaces after semicolons (default = true)."
+          "description": "Disable spaces after semicolons (default = true)."
         },
         "fantomas.indentOnTryWith": {
           "type": "boolean",
           "default": false,
           "description": "Enable indentation on try/with block (default = false)."
         },
-        "fantomas.reorderOpenDeclaration": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable reordering open declarations (default = false)."
-        },
-        "fantomas.spaceAroundDelimiter": {
+        "fantomas.noSpaceAroundDelimiter": {
           "type": "boolean",
           "default": true,
-          "description": "Enable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+          "description": "Disable spaces after starting and before ending of lists, arrays, sequences and records (default = true)."
+        },
+        "fantomas.keepNewlineAfter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep newlines found after = in let bindings, -> in pattern matching and chained function calls (default = false)."
+        },
+        "fantomas.maxIfThenElseShortWidth": {
+          "type": "number",
+          "default": 40,
+          "description": "Set the max length of any expression in an if expression before formatting on multiple lines (default = 40)."
         },
         "fantomas.strictMode": {
           "type": "boolean",

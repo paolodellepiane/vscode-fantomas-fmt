@@ -46,36 +46,23 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(disposable);
 
-  function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  function adaptApiParamToCli(key, value) {
-    const toinvert = {
-      spaceBeforeArgument: true,
-      spaceBeforeColon: true,
-      spaceAfterComma: true,
-      spaceAfterSemiColon: true,
-      spaceAroundDelimiter: true
-    };
-    return typeof value === "boolean" && toinvert[key]
-      ? ["--no" + capitalizeFirstLetter(key), !value]
-      : ["--" + key, value];
+  function adaptApiParamToCli(key: string, value) {
+    return ["--" + key.toLowerCase(), value];
   }
 
   function getFantomasArgs(document: vscode.TextDocument) {
     const keys = {
       ["indent"]: 4,
       ["pageWidth"]: 80,
-      ["preserveEOL"]: false,
       ["semicolonEOL"]: false,
-      ["spaceBeforeArgument"]: true,
-      ["spaceBeforeColon"]: true,
-      ["spaceAfterComma"]: true,
-      ["spaceAfterSemiColon"]: true,
+      ["noSpaceBeforeArgument"]: true,
+      ["spaceBeforeColon"]: false,
+      ["noSpaceAfterComma"]: true,
+      ["noSpaceAfterSemiColon"]: true,
       ["indentOnTryWith"]: false,
-      ["reorderOpenDeclaration"]: false,
-      ["spaceAroundDelimiter"]: true,
+      ["noSpaceAroundDelimiter"]: true,
+      ["keepNewlineAfter"]: false,
+      ["maxIfThenElseShortWidth"]: 40,      
       ["strictMode"]: false
     };
 

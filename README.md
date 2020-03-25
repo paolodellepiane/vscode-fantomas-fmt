@@ -18,12 +18,16 @@ This extension contributes the following settings:
 
 - `fantomas.indent`: set number of spaces for indentation (default = 4). The value should be between 1 and 10.
 - `fantomas.pageWidth`: set the column where we break to new lines (default = 80). The value should be at least 60.
-- `fantomas.preserveEOL`: preserve original end of lines, disables auto insert/remove of blank lines (default = false)
 - `fantomas.semicolonEOL`: enable semicolons at the end of line (default = false).
-- `fantomas.spaceBeforeArgument`: enable spaces before the first argument of functions when there are parenthesis (default = true).
-- `fantomas.spaceBeforeColon`: enable spaces before colons (default = true).
-- `fantomas.spaceAfterComma`: enable spaces after commas (default = true).
-- `fantomas.spaceAfterSemiColon`: enable spaces after semicolons (default = true).
+- `fantomas.noSpaceBeforeArgument`: disable spaces before the first argument of functions when there are parenthesis (default = true). For methods and constructors, there are never spaces regardless of this option.
+- `fantomas.spaceBeforeColon`: enable spaces before colons (default = false).
+- `fantomas.noSpaceAfterComma`: disable spaces after commas (default = true).
+- `fantomas.noSpaceAfterSemiColon`: disable spaces after semicolons (default = true).
+- `fantomas.indentOnTryWith`: enable indentation on try/with block (default = false).
+- `fantomas.noSpaceAroundDelimiter`: disable spaces after starting and before ending of lists, arrays, sequences and records (default = true).
+- `fantomas.keepNewlineAfter`: set the max length of any expression in an if expression before formatting on multiple lines (default = 40).
+- `fantomas.maxIfThenElseShortWidth`: set the max length of any expression in an if expression before formatting on multiple lines (default = 40).
+- `fantomas.strictMode`: enable strict mode (ignoring directives and comments and printing literals in canonical forms) (default = false).
 
 ## Troubleshooting
 
