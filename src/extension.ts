@@ -1,33 +1,46 @@
-'use strict';
-import * as vscode from 'vscode';
-import { runOnShell, runOnTerminal, log, logerr } from './runner';
-const fs = require('fs');
-const path = require('path');
+"use strict";
+import * as vscode from "vscode";
+import { log, logerr, runShell } from "./runner";
+import { writeFileSync } from "fs";
+const fs = require("fs");
+const path = require("path");
+const FANTOMAS_DOTNET_INSTALL_COMMAND = 'dotnet tool install --global fantomas-tool';
+const CAT_COMMAND = 'cat';
+const PIPE = '|';
 
 export function activate(context: vscode.ExtensionContext) {
-  log('activating fantomas-fmt');
+  log("activating fantomas-fmt");
 
   let formatting = false;
   let disposable = vscode.languages.registerDocumentFormattingEditProvider(
-    { scheme: 'file', language: 'fsharp' },
+    { scheme: "file", language: "fsharp" },
     {
-      async provideDocumentFormattingEdits(document: vscode.TextDocument): Promise<vscode.TextEdit[]> {
+      async provideDocumentFormattingEdits(
+        document: vscode.TextDocument
+      ): Promise<vscode.TextEdit[]> {
         if (formatting) {
           return null;
         }
         try {
           formatting = true;
           let is_fsi = document.fileName.endsWith(".fsi");
-          let formatted = await runFantomas(document.getText(), getFantomasArgs(), is_fsi, 10000);
+          let formatted = await runFantomas(
+            document.getText(),
+            getFantomasArgs(),
+            is_fsi
+          );
           if (formatted) {
             const firstLine = document.lineAt(0);
             const lastLine = document.lineAt(document.lineCount - 1);
-            const range = new vscode.Range(firstLine.range.start, lastLine.range.end);
+            const range = new vscode.Range(
+              firstLine.range.start,
+              lastLine.range.end
+            );
             return [vscode.TextEdit.replace(range, formatted.toString())];
           }
         } catch (err) {
           logerr(err);
-          vscode.window.showErrorMessage('[fantomas-fmt] ' + err.message);
+          vscode.window.showErrorMessage("[fantomas-fmt] " + err.message);
         } finally {
           formatting = false;
         }
@@ -49,44 +62,48 @@ export function activate(context: vscode.ExtensionContext) {
       spaceAfterSemiColon: true,
       spaceAroundDelimiter: true
     };
-    return typeof value === 'boolean' && toinvert[key] ? ['--no' + capitalizeFirstLetter(key), !value] : ['--' + key, value];
+    return typeof value === "boolean" && toinvert[key]
+      ? ["--no" + capitalizeFirstLetter(key), !value]
+      : ["--" + key, value];
   }
 
   function getFantomasArgs() {
     const keys = {
-      ['indent']: 4,
-      ['pageWidth']: 80,
-      ['preserveEOL']: false,
-      ['semicolonEOL']: false,
-      ['spaceBeforeArgument']: true,
-      ['spaceBeforeColon']: true,
-      ['spaceAfterComma']: true,
-      ['spaceAfterSemiColon']: true,
-      ['indentOnTryWith']: false,
-      ['reorderOpenDeclaration']: false,
-      ['spaceAroundDelimiter']: true,
-      ['strictMode']: false
+      ["indent"]: 4,
+      ["pageWidth"]: 80,
+      ["preserveEOL"]: false,
+      ["semicolonEOL"]: false,
+      ["spaceBeforeArgument"]: true,
+      ["spaceBeforeColon"]: true,
+      ["spaceAfterComma"]: true,
+      ["spaceAfterSemiColon"]: true,
+      ["indentOnTryWith"]: false,
+      ["reorderOpenDeclaration"]: false,
+      ["spaceAroundDelimiter"]: true,
+      ["strictMode"]: false
     };
-    const cfg = vscode.workspace.getConfiguration('fantomas');
+    const cfg = vscode.workspace.getConfiguration("fantomas");
     return Object.keys(keys)
       .filter(k => cfg.get(k, keys[k]) !== keys[k])
       .reduce((arr, k) => {
         const [cliKey, cliValue] = adaptApiParamToCli(k, cfg.get(k, keys[k]));
-        return typeof cliValue === 'boolean' ? [...arr, cliKey] : [...arr, cliKey, cliValue];
+        return typeof cliValue === "boolean"
+          ? [...arr, cliKey]
+          : [...arr, cliKey, cliValue];
       }, []);
   }
 
-  let os = require('os').platform() === 'win32' ? 'win32' : 'others';
-  let fantomasPath = path.join(require('os').homedir(), '.dotnet/tools/');
+  let os = require("os").platform() === "win32" ? "win32" : "others";
+  let fantomasPath = path.join(require("os").homedir(), ".dotnet/tools/");
   let fantomasExeNames = {
-    win32: 'fantomas.exe',
-    others: './fantomas'
+    win32: "fantomas.exe",
+    others: "./fantomas"
   };
   let fantomasExeName = () => fantomasExeNames[os];
-  let tmpFilePath = path.join(context.extensionPath, 'fantomas.tmp.fs');
+  let tmpFilePath = path.join(context.extensionPath, "fantomas.tmp.fs");
   let cmd = exe => (data, cfg) => {
     fs.writeFileSync(tmpFilePath, data);
-    return `${exe} "${tmpFilePath}" ${cfg.join(' ')}`;
+    return `${exe} "${tmpFilePath}" ${cfg.join(" ")}`;
   };
   let cmdWithExe = cmd(fantomasExeName());
 
@@ -95,32 +112,46 @@ export function activate(context: vscode.ExtensionContext) {
     return fs.existsSync(path.join(fantomasPath, fantomasExeName()));
   }
 
-  function installFantomas() {
-    let result = runOnShell('dotnet tool install fantomas-tool -g');
-    return result.output;
+  async function tryInstallFantomas(): Promise<boolean> {
+    try {
+        let { stdout } = await runShell(FANTOMAS_DOTNET_INSTALL_COMMAND);
+        log(stdout);
+        return stdout !== null
+    }
+    catch (error) {
+        logerr(error.toString())
+        return false;
+    }
   }
 
-  async function runFantomas(data, cfg, is_fsi, timeoutMs): Promise<string> {
-    let cmd = cmdWithExe(data, cfg) + (is_fsi ? " --fsi" : "");
+  async function runFantomas(text, cfg, is_fsi): Promise<string> {
+    let cmd = cmdWithExe(text, cfg) + (is_fsi ? " --fsi" : "") + " --stdout";
     log(cmd);
+    // let commands = [CAT_COMMAND, tempFile, PIPE, fantomasCommand, STDOUT_FLAG];
+
     try {
-      await runOnTerminal(context, fantomasPath, cmd, 'tten', 'failed', timeoutMs);
-      return fs.readFileSync(tmpFilePath);
-    } catch (ex) {
-      logerr(ex.message);
-      vscode.window.showErrorMessage('[fantomas-fmt] format failed');
+      const { stdout } = await runShell(cmd);
+      return stdout;
+    } catch (error) {
+      logerr(error.message);
+      vscode.window.showErrorMessage("[fantomas-fmt] format failed");
+      return null;
     }
   }
 
   let installed = ensureFantomasInstalled();
 
   if (installed) {
-    log('fantomas-tool found');
+    log("fantomas-tool found");
   }
 
-  if (!installed && !installFantomas() && !ensureFantomasInstalled()) {
-    logerr("Can't install Fantomas. Please install it manually and restart Visual Studio Code");
-    vscode.window.showErrorMessage("[fantomas-fmt] Can't install Fantomas. Please install it manually and restart Visual Studio Code");
+  if (!installed && !tryInstallFantomas() && !ensureFantomasInstalled()) {
+    logerr(
+      "Can't install Fantomas. Please install it manually and restart Visual Studio Code"
+    );
+    vscode.window.showErrorMessage(
+      "[fantomas-fmt] Can't install Fantomas. Please install it manually and restart Visual Studio Code"
+    );
   }
 }
 
