@@ -1,7 +1,6 @@
 'use strict';
 import * as execa from 'execa';
-const cp = require('child_process');
-const path = require('path');
+
 const DEFAULT_SUBPROCESS_OPTIONS = {
   shell: true,
   timeout: 10000

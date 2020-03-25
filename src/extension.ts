@@ -1,12 +1,10 @@
 "use strict";
 import * as vscode from "vscode";
 import { log, logerr, runShell } from "./runner";
-import { writeFileSync } from "fs";
 const fs = require("fs");
 const path = require("path");
-const FANTOMAS_DOTNET_INSTALL_COMMAND = 'dotnet tool install --global fantomas-tool';
-const CAT_COMMAND = 'cat';
-const PIPE = '|';
+const FANTOMAS_DOTNET_INSTALL_COMMAND =
+  "dotnet tool install --global fantomas-tool";
 
 export function activate(context: vscode.ExtensionContext) {
   log("activating fantomas-fmt");
@@ -23,11 +21,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
         try {
           formatting = true;
-          let is_fsi = document.fileName.endsWith(".fsi");
           let formatted = await runFantomas(
             document.getText(),
-            getFantomasArgs(),
-            is_fsi
+            getFantomasArgs(document)
           );
           if (formatted) {
             const firstLine = document.lineAt(0);
@@ -67,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
       : ["--" + key, value];
   }
 
-  function getFantomasArgs() {
+  function getFantomasArgs(document: vscode.TextDocument) {
     const keys = {
       ["indent"]: 4,
       ["pageWidth"]: 80,
@@ -82,8 +78,9 @@ export function activate(context: vscode.ExtensionContext) {
       ["spaceAroundDelimiter"]: true,
       ["strictMode"]: false
     };
+
     const cfg = vscode.workspace.getConfiguration("fantomas");
-    return Object.keys(keys)
+    let res = Object.keys(keys)
       .filter(k => cfg.get(k, keys[k]) !== keys[k])
       .reduce((arr, k) => {
         const [cliKey, cliValue] = adaptApiParamToCli(k, cfg.get(k, keys[k]));
@@ -91,6 +88,9 @@ export function activate(context: vscode.ExtensionContext) {
           ? [...arr, cliKey]
           : [...arr, cliKey, cliValue];
       }, []);
+    
+    if (document.fileName.endsWith(".fsi")) res.push("--fsi");
+    return res;
   }
 
   let os = require("os").platform() === "win32" ? "win32" : "others";
@@ -114,24 +114,22 @@ export function activate(context: vscode.ExtensionContext) {
 
   async function tryInstallFantomas(): Promise<boolean> {
     try {
-        let { stdout } = await runShell(FANTOMAS_DOTNET_INSTALL_COMMAND);
-        log(stdout);
-        return stdout !== null
-    }
-    catch (error) {
-        logerr(error.toString())
-        return false;
+      let { stdout } = await runShell(FANTOMAS_DOTNET_INSTALL_COMMAND);
+      log(stdout);
+      return stdout !== null;
+    } catch (error) {
+      logerr(error.toString());
+      return false;
     }
   }
 
-  async function runFantomas(text, cfg, is_fsi): Promise<string> {
-    let cmd = cmdWithExe(text, cfg) + (is_fsi ? " --fsi" : "") + " --stdout";
+  async function runFantomas(text, cfg): Promise<string> {
+    let cmd = cmdWithExe(text, cfg);
     log(cmd);
-    // let commands = [CAT_COMMAND, tempFile, PIPE, fantomasCommand, STDOUT_FLAG];
 
     try {
-      const { stdout } = await runShell(cmd);
-      return stdout;
+      await runShell(cmd);
+      return fs.readFileSync(tmpFilePath);
     } catch (error) {
       logerr(error.message);
       vscode.window.showErrorMessage("[fantomas-fmt] format failed");
