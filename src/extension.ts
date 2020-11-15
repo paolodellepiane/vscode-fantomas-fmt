@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
   let fantomasPath = path.join(require("os").homedir(), ".dotnet/tools/");
   let fantomasExeNames = {
     win32: "fantomas.exe",
-    others: "./fantomas"
+    others: "fantomas"
   };
   let fantomasExeName = () => fantomasExeNames[os];
   let tmpFilePath = path.join(context.extensionPath, "fantomas.tmp.fs");
